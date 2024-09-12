@@ -2,56 +2,28 @@
 
 set -e
 
-# Function to detect the operating system and architecture
-detect_os_and_arch() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-        ARCH=$(uname -m)
-    elif [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        OS="$ID"
-        ARCH=$(uname -m)
-    else
-        OS="unknown"
-        ARCH="unknown"
-    fi
-    echo "$OS $ARCH"
+# Function to find the most recent Splunk tarball
+find_splunk_tarball() {
+    find . -maxdepth 1 -name "splunk-*-*-darwin-*.tgz" | sort -r | head -n 1
 }
 
-# Detect the operating system and architecture
-OS_AND_ARCH=$(detect_os_and_arch)
-echo "Detected OS and Architecture: $OS_AND_ARCH"
+# Find the Splunk tarball
+SPLUNK_PACKAGE=$(find_splunk_tarball)
 
-# Set the correct Splunk package based on OS and architecture
-case $OS_AND_ARCH in
-    "macos x86_64")
-        SPLUNK_PACKAGE="splunk-9.0.4.1-419ad9369127-darwin-64.tgz"
-        ;;
-    "macos arm64")
-        SPLUNK_PACKAGE="splunk-9.0.4.1-419ad9369127-darwin-aarch64.tgz"
-        ;;
-    *)
-        echo "Unsupported OS or architecture. Please download the appropriate Splunk package manually."
-        exit 1
-        ;;
-esac
-
-# Download Splunk Enterprise
-echo "Downloading Splunk Enterprise..."
-curl -L -O "https://download.splunk.com/products/splunk/releases/9.0.4.1/darwin/${SPLUNK_PACKAGE}"
-
-# Verify the download
-if [ ! -f "${SPLUNK_PACKAGE}" ]; then
-    echo "Download failed. Please check your internet connection and try again."
+if [ -z "$SPLUNK_PACKAGE" ]; then
+    echo "No Splunk tarball found in the current directory."
+    echo "Please download Splunk Enterprise from:"
+    echo "https://www.splunk.com/en_us/download/splunk-enterprise.html"
+    echo ""
+    echo "For macOS, choose:"
+    echo "- Intel Macs: 'Mac OS X'"
+    echo "- M1/M2 Macs: 'Mac OS X ARM'"
+    echo ""
+    echo "Download the .tgz file and place it in this directory, then run this script again."
     exit 1
 fi
 
-# Check file size (should be around 383 MB)
-FILE_SIZE=$(du -m "${SPLUNK_PACKAGE}" | cut -f1)
-if [ "${FILE_SIZE}" -lt 350 ]; then
-    echo "The downloaded file seems too small. It might be corrupted. Please try running the script again."
-    exit 1
-fi
+echo "Found Splunk package: $SPLUNK_PACKAGE"
 
 # Clean up any existing Splunk installation
 echo "Cleaning up any existing Splunk installation..."
@@ -73,16 +45,15 @@ sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
 echo "Enabling Splunk to start at boot..."
 sudo /opt/splunk/bin/splunk enable boot-start -user splunk
 
-# Create admin user (replace 'your_password' with a strong password)
+# Create admin user
 echo "Setting admin password..."
-sudo /opt/splunk/bin/splunk edit user admin -password 'your_password' -role admin -auth admin:changeme
+read -sp "Enter a strong password for the Splunk admin user: " ADMIN_PASSWORD
+echo ""
+sudo /opt/splunk/bin/splunk edit user admin -password "${ADMIN_PASSWORD}" -role admin -auth admin:changeme
 
 # Restart Splunk to apply changes
 echo "Restarting Splunk to apply changes..."
 sudo /opt/splunk/bin/splunk restart
 
 echo "Splunk installation complete. Access the web interface at http://localhost:8000"
-echo "Please remember to change 'your_password' in the script to a strong, unique password before running it."
-
-# Clean up the downloaded package
-rm "${SPLUNK_PACKAGE}"
+echo "You can log in with username 'admin' and the password you just set."
