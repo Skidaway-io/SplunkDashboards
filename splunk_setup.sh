@@ -91,7 +91,7 @@ import_dashboard() {
 # Main execution
 main() {
     check_root
-    update_system
+    #update_system
     install_dependencies
     check_splunk_tarball
     install_splunk
