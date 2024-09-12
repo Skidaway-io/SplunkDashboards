@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Function to detect the operating system and architecture
 detect_os_and_arch() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -38,22 +40,49 @@ esac
 echo "Downloading Splunk Enterprise..."
 curl -L -O "https://download.splunk.com/products/splunk/releases/9.0.4.1/darwin/${SPLUNK_PACKAGE}"
 
+# Verify the download
+if [ ! -f "${SPLUNK_PACKAGE}" ]; then
+    echo "Download failed. Please check your internet connection and try again."
+    exit 1
+fi
+
+# Check file size (should be around 383 MB)
+FILE_SIZE=$(du -m "${SPLUNK_PACKAGE}" | cut -f1)
+if [ "${FILE_SIZE}" -lt 350 ]; then
+    echo "The downloaded file seems too small. It might be corrupted. Please try running the script again."
+    exit 1
+fi
+
+# Clean up any existing Splunk installation
+echo "Cleaning up any existing Splunk installation..."
+sudo rm -rf /opt/splunk
+
 # Extract Splunk
 echo "Extracting Splunk..."
-sudo tar xvzf ${SPLUNK_PACKAGE} -C /opt
+sudo tar xzf "${SPLUNK_PACKAGE}" -C /opt
 
-# The rest of the script remains the same...
+# Set correct permissions
+echo "Setting correct permissions..."
+sudo chown -R root:wheel /opt/splunk
 
 # Start Splunk and accept license
-sudo /opt/splunk/bin/splunk start --accept-license
+echo "Starting Splunk and accepting license..."
+sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
 
 # Enable Splunk to start at boot
-sudo /opt/splunk/bin/splunk enable boot-start
+echo "Enabling Splunk to start at boot..."
+sudo /opt/splunk/bin/splunk enable boot-start -user splunk
 
 # Create admin user (replace 'your_password' with a strong password)
-sudo /opt/splunk/bin/splunk edit user admin -password 'test' -role admin -auth admin:changeme
+echo "Setting admin password..."
+sudo /opt/splunk/bin/splunk edit user admin -password 'your_password' -role admin -auth admin:changeme
 
 # Restart Splunk to apply changes
+echo "Restarting Splunk to apply changes..."
 sudo /opt/splunk/bin/splunk restart
 
 echo "Splunk installation complete. Access the web interface at http://localhost:8000"
+echo "Please remember to change 'your_password' in the script to a strong, unique password before running it."
+
+# Clean up the downloaded package
+rm "${SPLUNK_PACKAGE}"
