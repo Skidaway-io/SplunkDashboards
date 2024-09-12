@@ -4,10 +4,9 @@ This project automates the installation of Splunk Enterprise, imports a custom d
 
 ## Prerequisites
 
-- A Linux system (EC2 instance with Amazon Linux or any other Linux distribution)
+- A Linux or Mac system 
 - Root or sudo access
 - Splunk Enterprise installer tarball (`.tgz` file) obtained separately
-- The `anomaly_hub.xml` dashboard file from the Snowflake app Tempo project
 
 ## What the Script Does
 
@@ -24,13 +23,12 @@ This project automates the installation of Splunk Enterprise, imports a custom d
 
 1. Obtain the Splunk Enterprise tarball from your authorized Splunk software provider.
 2. Place the Splunk Enterprise tarball (e.g., `splunk-*-Linux-x86_64.tgz`) in the same directory as the script.
-3. Ensure you have the `anomaly_hub.xml` file in the same directory as the script.
-4. Open the script in a text editor and replace 'your_admin_password', 'default_user', and 'default_password' with your desired credentials.
-5. Make the script executable:
+3. Open the script in a text editor and replace 'your_admin_password', 'default_user', and 'default_password' with your desired credentials.
+4. Make the script executable:
    ```
    chmod +x splunk_tempo_install.sh
    ```
-6. Run the script with sudo privileges:
+5. Run the script with sudo privileges:
    ```
    sudo ./splunk_tempo_install.sh
    ```
