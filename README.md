@@ -6,27 +6,30 @@ This project automates the installation of Splunk Enterprise and the import of a
 
 - A Linux system (EC2 instance with Amazon Linux or any other Linux distribution)
 - Root or sudo access
-- Internet connectivity to download Splunk Enterprise
+- Splunk Enterprise installer tarball (`.tgz` file) obtained separately
 - The `anomaly_hub.xml` dashboard file from the Snowflake app Tempo project
 
 ## What the Script Does
 
 1. Updates the system packages
-2. Downloads and installs Splunk Enterprise 8.2.2
-3. Configures Splunk to start automatically on boot
-4. Sets up an admin user for Splunk
-5. Configures the firewall (if applicable)
-6. Imports the `anomaly_hub.xml` dashboard from the Tempo project
-7. Restarts Splunk to apply all changes
+2. Locates the Splunk Enterprise installer in the current directory
+3. Installs Splunk Enterprise
+4. Configures Splunk to start automatically on boot
+5. Sets up an admin user for Splunk
+6. Configures the firewall (if applicable)
+7. Imports the `anomaly_hub.xml` dashboard from the Tempo project
+8. Restarts Splunk to apply all changes
 
 ## Usage
 
-1. Ensure you have the `anomaly_hub.xml` file in the same directory as the script.
-2. Make the script executable:
+1. Obtain the Splunk Enterprise tarball from your authorized Splunk software provider.
+2. Place the Splunk Enterprise tarball (e.g., `splunk-*-Linux-x86_64.tgz`) in the same directory as the script.
+3. Ensure you have the `anomaly_hub.xml` file in the same directory as the script.
+4. Make the script executable:
    ```
    chmod +x splunk_tempo_install.sh
    ```
-3. Run the script with sudo privileges:
+5. Run the script with sudo privileges:
    ```
    sudo ./splunk_tempo_install.sh
    ```
@@ -43,6 +46,7 @@ After running the script, you can access the Splunk web interface at `http://you
 
 ## Troubleshooting
 
+- If the script fails to find the Splunk tarball, ensure it's in the same directory and follows the naming convention `splunk-*-Linux-x86_64.tgz`.
 - If the dashboard doesn't appear, check the Splunk server logs at `/opt/splunk/var/log/splunk/splunkd.log`.
 - Ensure that the `anomaly_hub.xml` file is correctly formatted and placed in the script's directory before running.
 
