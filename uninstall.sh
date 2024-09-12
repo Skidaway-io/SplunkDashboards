@@ -1,87 +1,80 @@
 #!/bin/bash
+# Splunk Tempo Dashboard Uninstaller
+# This script removes Splunk Enterprise, stops all related processes, and cleans up the system
 
-# Function to detect the operating system
-detect_os() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "macos"
-    elif [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        echo "$ID"
+set -e  # Exit immediately if a command exits with a non-zero status.
+
+# Function to check if running as root
+check_root() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "Please run as root or using sudo"
+        exit 1
+    fi
+}
+
+# Function to stop Splunk and remove from boot
+stop_splunk() {
+    if [ -f "/opt/splunk/bin/splunk" ]; then
+        echo "Stopping Splunk..."
+        /opt/splunk/bin/splunk stop
+        echo "Removing Splunk from boot-start..."
+        /opt/splunk/bin/splunk disable boot-start
     else
-        echo "unknown"
+        echo "Splunk binary not found. It may have already been removed."
+    fi
+}
+
+# Function to remove Splunk files
+remove_splunk_files() {
+    echo "Removing Splunk files..."
+    rm -rf /opt/splunk
+    rm -rf /etc/init.d/splunk
+    rm -rf /etc/systemd/system/splunk.service
+}
+
+# Function to remove Splunk user and group
+remove_splunk_user() {
+    if id "splunk" &>/dev/null; then
+        echo "Removing Splunk user and group..."
+        userdel -r splunk 2>/dev/null || true
+        groupdel splunk 2>/dev/null || true
+    else
+        echo "Splunk user not found. Skipping user removal."
     fi
 }
 
 # Function to remove firewall rules
-remove_firewall_rule() {
-    case $1 in
-        macos)
-            echo "On macOS, please remove the firewall rule manually if you added one."
-            ;;
-        ubuntu|debian)
-            sudo ufw delete allow 8000/tcp
-            sudo ufw reload
-            ;;
-        centos|rhel|fedora)
-            sudo firewall-cmd --permanent --remove-port=8000/tcp
-            sudo firewall-cmd --reload
-            ;;
-        *)
-            echo "Please remove the firewall rule manually if you added one."
-            ;;
-    esac
+remove_firewall_rules() {
+    if command -v firewall-cmd &> /dev/null; then
+        echo "Removing firewall rules (firewalld)..."
+        firewall-cmd --permanent --remove-port=8000/tcp
+        firewall-cmd --reload
+    elif command -v ufw &> /dev/null; then
+        echo "Removing firewall rules (ufw)..."
+        ufw delete allow 8000/tcp
+    else
+        echo "No supported firewall detected. Please remove any manually added firewall rules for Splunk."
+    fi
 }
 
-# Detect the operating system
-OS=$(detect_os)
-echo "Detected OS: $OS"
+# Function to clean up any remaining processes
+cleanup_processes() {
+    echo "Cleaning up any remaining Splunk processes..."
+    pkill -f splunkd || true
+    pkill -f splunk || true
+}
 
-# Stop Splunk service
-echo "Stopping Splunk service..."
-sudo /opt/splunk/bin/splunk stop
+# Main execution
+main() {
+    check_root
+    stop_splunk
+    remove_splunk_files
+    remove_splunk_user
+    remove_firewall_rules
+    cleanup_processes
+    echo "Splunk has been completely removed from the system."
+    echo "Note: This script does not remove any data or configurations you may have created outside of the /opt/splunk directory."
+    echo "If you have any custom data or configurations elsewhere, please remove them manually."
+}
 
-# Disable Splunk from starting at boot
-echo "Disabling Splunk from starting at boot..."
-sudo /opt/splunk/bin/splunk disable boot-start
-
-# Remove Splunk files
-echo "Removing Splunk files..."
-sudo rm -rf /opt/splunk
-
-# Remove Splunk user and group
-echo "Removing Splunk user and group..."
-sudo userdel splunk
-sudo groupdel splunk
-
-# Remove firewall rule
-echo "Removing firewall rule..."
-remove_firewall_rule $OS
-
-# Remove any remaining Splunk-related files
-echo "Removing any remaining Splunk-related files..."
-sudo rm -rf /etc/init.d/splunk
-sudo rm -rf /etc/systemd/system/splunkd.service
-
-# Clean up systemd
-if [[ "$OS" != "macos" ]]; then
-    echo "Reloading systemd..."
-    sudo systemctl daemon-reload
-fi
-
-# Remove logs
-echo "Removing Splunk logs..."
-sudo rm -rf /var/log/splunk
-
-# Remove any Splunk-related environment variables
-echo "Removing Splunk-related environment variables..."
-sudo sed -i '/SPLUNK/d' /etc/environment
-sudo sed -i '/splunk/d' /etc/profile
-sudo sed -i '/SPLUNK/d' /etc/profile
-
-# Remind user to remove any manual configurations
-echo "Please remember to remove any manual configurations you may have added, such as:"
-echo "- Entries in /etc/hosts"
-echo "- Cron jobs"
-echo "- Custom scripts or aliases"
-
-echo "Splunk has been uninstalled. You may need to restart your system for all changes to take effect."
+main
