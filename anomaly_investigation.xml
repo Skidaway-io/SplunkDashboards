@@ -1,0 +1,141 @@
+<form version="1.1" theme="dark">
+  <label>Anomaly Investigation</label>
+  <fieldset submitButton="true">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Top 10 Ports</title>
+      <chart>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats count by connection_port
+| sort - count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Top 10 Services</title>
+      <table>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats count by connection_service
+| sort - count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Connection Device</title>
+      <chart>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats count by connection_device
+| sort - count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Server Device</title>
+      <chart>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats count by server_device
+| sort - count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>NetFlow</title>
+      <table>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| table timestamp, connection_ip , connection_device, server_ip, server_device, pkt_size, fwd_size, bwd_size, flow_dur, flow_bytes,</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Total Nomalized Backward Bytes</title>
+      <single>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats sum(bwd_size) as bwd_size_sum</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Total Normalized Forward Bytes</title>
+      <single>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip= $selected_ip$
+| stats sum(fwd_size) as fwd_size_sum</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Normalized Time Graph</title>
+      <chart>
+        <search>
+          <query>source="anom_investigate.csv" host="Josiah" sourcetype="csv" connection_ip=$selected_ip$
+| timechart span=1h avg(pkt_size) as "Average Packet Size", avg(fwd_size) as "Average Forward Size", avg(bwd_size) as "Average Backward Size", avg(flow_dur) as "Average Flow Duration", avg(flow_bytes) as "Average Flow Bytes"
+| fillnull value=0</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+</form>
