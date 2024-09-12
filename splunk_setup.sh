@@ -1,59 +1,64 @@
 #!/bin/bash
 
-set -e
+# Splunk Tempo Dashboard Installer
+# This script installs Splunk Enterprise, imports the Tempo project dashboard, and sets up users
 
-# Function to find the most recent Splunk tarball
-find_splunk_tarball() {
-    find . -maxdepth 1 -name "splunk-*-*-darwin-*.tgz" | sort -r | head -n 1
-}
+# Update the system
+if command -v yum &> /dev/null; then
+    sudo yum update -y
+elif command -v apt-get &> /dev/null; then
+    sudo apt-get update && sudo apt-get upgrade -y
+else
+    echo "Unsupported package manager. Please update your system manually."
+fi
 
-# Find the Splunk tarball
-SPLUNK_PACKAGE=$(find_splunk_tarball)
+# Find Splunk tarball in current directory
+SPLUNK_TARBALL=$(ls splunk-*-Linux-x86_64.tgz 2>/dev/null | head -n 1)
 
-if [ -z "$SPLUNK_PACKAGE" ]; then
-    echo "No Splunk tarball found in the current directory."
-    echo "Please download Splunk Enterprise from:"
-    echo "https://www.splunk.com/en_us/download/splunk-enterprise.html"
-    echo ""
-    echo "For macOS, choose:"
-    echo "- Intel Macs: 'Mac OS X'"
-    echo "- M1/M2 Macs: 'Mac OS X ARM'"
-    echo ""
-    echo "Download the .tgz file and place it in this directory, then run this script again."
+if [ -z "$SPLUNK_TARBALL" ]; then
+    echo "Splunk installer not found in current directory. Please ensure the Splunk tarball (splunk-*-Linux-x86_64.tgz) is in this directory."
     exit 1
 fi
 
-echo "Found Splunk package: $SPLUNK_PACKAGE"
-
-# Clean up any existing Splunk installation
-echo "Cleaning up any existing Splunk installation..."
-sudo rm -rf /opt/splunk
+echo "Found Splunk installer: $SPLUNK_TARBALL"
 
 # Extract Splunk
-echo "Extracting Splunk..."
-sudo tar xzf "${SPLUNK_PACKAGE}" -C /opt
-
-# Set correct permissions
-echo "Setting correct permissions..."
-sudo chown -R root:wheel /opt/splunk
+sudo tar xvzf "$SPLUNK_TARBALL" -C /opt
 
 # Start Splunk and accept license
-echo "Starting Splunk and accepting license..."
-sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+sudo /opt/splunk/bin/splunk start --accept-license
 
 # Enable Splunk to start at boot
-echo "Enabling Splunk to start at boot..."
-sudo /opt/splunk/bin/splunk enable boot-start -user splunk
+sudo /opt/splunk/bin/splunk enable boot-start
 
-# Create admin user
-echo "Setting admin password..."
-read -sp "Enter a strong password for the Splunk admin user: " ADMIN_PASSWORD
-echo ""
-sudo /opt/splunk/bin/splunk edit user admin -password "${ADMIN_PASSWORD}" -role admin -auth admin:changeme
+# Create admin user (replace 'your_admin_password' with a strong password)
+sudo /opt/splunk/bin/splunk edit user admin -password 'your_admin_password' -role admin -auth admin:changeme
+
+# Create a default user (replace 'default_user' and 'default_password' with your chosen credentials)
+sudo /opt/splunk/bin/splunk add user default_user -password 'default_password' -role user -auth admin:your_admin_password
+
+# Configure firewall (if using firewalld)
+if command -v firewall-cmd &> /dev/null; then
+    sudo firewall-cmd --permanent --add-port=8000/tcp
+    sudo firewall-cmd --reload
+else
+    echo "firewall-cmd not found. Please configure your firewall manually to allow port 8000."
+fi
+
+# Import dashboard from Tempo project
+DASHBOARD_FILE="anomaly_hub.xml"
+APP_CONTEXT="search"
+
+if [ -f "$DASHBOARD_FILE" ]; then
+    sudo cp "$DASHBOARD_FILE" "/opt/splunk/etc/apps/$APP_CONTEXT/local/data/ui/views/"
+    sudo chown splunk:splunk "/opt/splunk/etc/apps/$APP_CONTEXT/local/data/ui/views/$DASHBOARD_FILE"
+    echo "Tempo project dashboard imported successfully."
+else
+    echo "Dashboard file not found. Please ensure '$DASHBOARD_FILE' from the Tempo project is in the same directory as this script."
+fi
 
 # Restart Splunk to apply changes
-echo "Restarting Splunk to apply changes..."
 sudo /opt/splunk/bin/splunk restart
 
-echo "Splunk installation complete. Access the web interface at http://localhost:8000"
-echo "You can log in with username 'admin' and the password you just set."
+echo "Splunk installation and Tempo dashboard import complete. Access the web interface at http://your_server_ip:8000"
+echo "Please ensure you change both the admin and default user passwords if you haven't set strong passwords in the script."
