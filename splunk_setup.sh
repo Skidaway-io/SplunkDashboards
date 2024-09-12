@@ -1,7 +1,6 @@
 #!/bin/bash
 # Splunk Tempo Dashboard Installer
 # This script installs Splunk Enterprise, imports the Tempo project dashboard, and sets up users
-
 set -e  # Exit immediately if a command exits with a non-zero status.
 
 # Function to check if running as root
@@ -28,15 +27,20 @@ update_system() {
 
 # Function to install required dependencies
 install_dependencies() {
-    if command -v yum &> /dev/null; then
-        yum install -y tar
-    elif command -v apt-get &> /dev/null; then
-        apt-get install -y tar
-    elif command -v zypper &> /dev/null; then
-        zypper install -y tar
+    if command -v tar &> /dev/null; then
+        echo "tar is already installed. Skipping installation."
     else
-        echo "Unsupported package manager. Please install tar manually."
-        exit 1
+        echo "tar is not installed. Attempting to install..."
+        if command -v yum &> /dev/null; then
+            yum install -y tar
+        elif command -v apt-get &> /dev/null; then
+            apt-get install -y tar
+        elif command -v zypper &> /dev/null; then
+            zypper install -y tar
+        else
+            echo "Unsupported package manager. Please install tar manually."
+            exit 1
+        fi
     fi
 }
 
