@@ -13,7 +13,7 @@ else
 fi
 
 # Find Splunk tarball in current directory
-SPLUNK_TARBALL=$(ls splunk-*-Linux-x86_64.tgz 2>/dev/null | head -n 1)
+SPLUNK_TARBALL=$(ls splunk-*.tgz 2>/dev/null | head -n 1)
 
 if [ -z "$SPLUNK_TARBALL" ]; then
     echo "Splunk installer not found in current directory. Please ensure the Splunk tarball (splunk-*-Linux-x86_64.tgz) is in this directory."
