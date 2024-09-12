@@ -25,7 +25,7 @@ sudo firewall-cmd --reload
 # Import dashboard
 # Replace 'my_dashboard.xml' with your dashboard file name
 # Replace 'search' with your desired app context if different
-DASHBOARD_FILE="my_dashboard.xml"
+DASHBOARD_FILE="anomaly_hub.xml"
 APP_CONTEXT="search"
 
 if [ -f "$DASHBOARD_FILE" ]; then
