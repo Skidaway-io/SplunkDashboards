@@ -88,7 +88,7 @@ install_splunk() {
 
 # Function to create users
 create_users() {
-    /opt/splunk/bin/splunk edit user admin -password 'your_admin_password' -role admin -auth admin:changeme
+    /opt/splunk/bin/splunk edit user admin -password 'password' -role admin -auth admin:changeme
     /opt/splunk/bin/splunk add user default_user -password 'default_password' -role user -auth admin:your_admin_password
     
     # Set the file path
@@ -119,14 +119,21 @@ configure_firewall() {
     fi
 }
 
-# Function to import dashboard
+# Updated Function to import dashboard using Splunk CLI
 import_dashboard() {
     DASHBOARD_FILE="anomaly_hub.xml"
-    APP_CONTEXT="search"
+    APP_NAME="search"
+    ADMIN_USERNAME="admin"
+    ADMIN_PASSWORD="password"
+
     if [ -f "$DASHBOARD_FILE" ]; then
-        cp "$DASHBOARD_FILE" "/opt/splunk/etc/apps/$APP_CONTEXT/local/data/ui/views/"
-        chown splunk:splunk "/opt/splunk/etc/apps/$APP_CONTEXT/local/data/ui/views/$DASHBOARD_FILE"
-        echo "Tempo project dashboard imported successfully."
+        echo "Importing dashboard using Splunk CLI..."
+        /opt/splunk/bin/splunk add dashboard "$DASHBOARD_FILE" -auth "$ADMIN_USERNAME:$ADMIN_PASSWORD" -app "$APP_NAME"
+        if [ $? -eq 0 ]; then
+            echo "Tempo project dashboard imported successfully."
+        else
+            echo "Failed to import dashboard. Please check Splunk logs for more information."
+        fi
     else
         echo "Dashboard file not found. Please ensure '$DASHBOARD_FILE' from the Tempo project is in the same directory as this script."
     fi
