@@ -63,6 +63,17 @@ check_splunk_tarball() {
     echo "Found Splunk installer: $SPLUNK_TARBALL"
 }
 
+# Function to check if Splunk is already installed
+check_splunk_installed() {
+    if [ -d "/opt/splunk" ] && [ -f "/opt/splunk/bin/splunk" ]; then
+        echo "Splunk is already installed."
+        return 0
+    else
+        echo "Splunk is not installed."
+        return 1
+    fi
+}
+
 # Function to install Splunk
 install_splunk() {
     tar xvzf "$SPLUNK_TARBALL" -C /opt
@@ -126,13 +137,19 @@ main() {
     check_privileges
     detect_os
     install_dependencies
-    check_splunk_tarball
-    install_splunk
-    create_users
-    configure_firewall
+
+    if check_splunk_installed; then
+        echo "Skipping Splunk installation and user setup. Proceeding to dashboard import."
+    else
+        check_splunk_tarball
+        install_splunk
+        create_users
+        configure_firewall
+    fi
+
     import_dashboard
     /opt/splunk/bin/splunk restart
-    echo "Splunk installation and Tempo dashboard import complete. Access the web interface at http://localhost:8000"
+    echo "Splunk installation (if needed) and Tempo dashboard import complete. Access the web interface at http://localhost:8000"
     echo "Please ensure you change both the admin and default user passwords if you haven't set strong passwords in the script."
 }
 
