@@ -95,10 +95,10 @@ create_users() {
     FILE_PATH="/opt/splunk/etc/system/local/user-seed.conf"
     # Create the file with the specified content
     cat << EOF > "$FILE_PATH"
-    [user_info]
-    USERNAME = admin
-    PASSWORD = password
-    EOF
+[user_info]
+USERNAME = admin
+PASSWORD = password
+EOF
     # Set the file ownership to root
     chown root:root "$FILE_PATH"
 }
