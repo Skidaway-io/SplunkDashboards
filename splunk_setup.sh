@@ -154,10 +154,10 @@ main() {
         configure_firewall
     fi
 
-    import_dashboard
+    #import_dashboard
     /opt/splunk/bin/splunk restart
-    echo "Splunk installation (if needed) and Tempo dashboard import complete. Access the web interface at http://localhost:8000"
-    echo "Please ensure you change both the admin and default user passwords if you haven't set strong passwords in the script."
+    echo "Splunk installation (if needed) complete. Access the web interface at http://localhost:8000"
+    echo "Please ensure you change the admin user password if you haven't set strong passwords in the script."
 }
 
 main
