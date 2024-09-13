@@ -79,6 +79,17 @@ install_splunk() {
 create_users() {
     /opt/splunk/bin/splunk edit user admin -password 'your_admin_password' -role admin -auth admin:changeme
     /opt/splunk/bin/splunk add user default_user -password 'default_password' -role user -auth admin:your_admin_password
+    
+    # Set the file path
+    FILE_PATH="/opt/splunk/etc/system/local/user-seed.conf"
+    # Create the file with the specified content
+    cat << EOF > "$FILE_PATH"
+    [user_info]
+    USERNAME = admin
+    PASSWORD = password
+    EOF
+    # Set the file ownership to root
+    chown root:root "$FILE_PATH"
 }
 
 # Function to configure firewall
