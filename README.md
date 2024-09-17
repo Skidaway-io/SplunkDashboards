@@ -87,12 +87,6 @@ This project automates the installation of Splunk Enterprise, imports a custom d
 
 17. Select upload and select the .csv file you downloaded from SnowFlake
 
-## Dashboard Preview
-
-Here's a preview of the Tempo Dashboard you'll see after installation:
-
-![Tempo Dashboard Preview](https://example.com/path/to/dashboard_preview.png)
-
 ## Important Notes
 
 - The script sets up an admin user
