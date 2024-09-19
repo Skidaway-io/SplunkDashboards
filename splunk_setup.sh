@@ -122,13 +122,17 @@ configure_firewall() {
 # Updated Function to import dashboard using Splunk CLI
 import_dashboard() {
     DASHBOARD_FILE="anomaly_hub.xml"
-    APP_NAME="search"
+    SPLUNK_URL="http://localhost:8000"
     ADMIN_USERNAME="admin"
     ADMIN_PASSWORD="password"
 
     if [ -f "$DASHBOARD_FILE" ]; then
-        echo "Importing dashboard using Splunk CLI..."
-        /opt/splunk/bin/splunk add dashboard "$DASHBOARD_FILE" -auth "$ADMIN_USERNAME:$ADMIN_PASSWORD" -app "$APP_NAME"
+        echo "Importing dashboard using curl..."
+        curl -k -u "$ADMIN_USERNAME:$ADMIN_PASSWORD" \
+             -X POST \
+             "${SPLUNK_URL}/services/data/ui/views" \
+             --data-urlencode "name=$(basename "$DASHBOARD_FILE" .xml)" \
+             --data-urlencode "eai:data@$DASHBOARD_FILE"
         if [ $? -eq 0 ]; then
             echo "Tempo project dashboard imported successfully."
         else
@@ -153,8 +157,9 @@ main() {
         create_users
         configure_firewall
     fi
-
-    #import_dashboard
+    
+    sleep 60
+    import_dashboard
     /opt/splunk/bin/splunk restart
     echo "Splunk installation (if needed) complete. Access the web interface at http://localhost:8000"
     echo "Please ensure you change the admin user password if you haven't set strong passwords in the script."
