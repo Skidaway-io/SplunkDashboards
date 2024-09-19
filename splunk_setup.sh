@@ -105,18 +105,95 @@ EOF
 
 # Function to configure firewall
 configure_firewall() {
-    if [ "$OS" == "linux" ]; then
-        if command -v firewall-cmd &> /dev/null; then
-            firewall-cmd --permanent --add-port=8000/tcp
-            firewall-cmd --reload
-        elif command -v ufw &> /dev/null; then
-            ufw allow 8000/tcp
-        else
-            echo "No supported firewall detected. Please configure your firewall manually to allow port 8000."
-        fi
-    elif [ "$OS" == "macos" ]; then
-        echo "On macOS, you may need to configure the firewall manually. Ensure that port 8000 is open for Splunk Web access."
-    fi
+    local port=8000
+
+    case "$(uname -s)" in
+        Linux*)
+            # Detect the Linux distribution
+            if [ -f /etc/os-release ]; then
+                . /etc/os-release
+                OS=$NAME
+            elif type lsb_release >/dev/null 2>&1; then
+                OS=$(lsb_release -si)
+            elif [ -f /etc/lsb-release ]; then
+                . /etc/lsb-release
+                OS=$DISTRIB_ID
+            elif [ -f /etc/debian_version ]; then
+                OS=Debian
+            else
+                OS=$(uname -s)
+            fi
+
+            case $OS in
+                *"Ubuntu"*|*"Debian"*)
+                    echo "Checking firewall for Ubuntu/Debian..."
+                    if command -v ufw &> /dev/null; then
+                        echo "Configuring UFW..."
+                        sudo ufw allow ${port}/tcp
+                        sudo ufw reload
+                    else
+                        echo "UFW not found. Skipping firewall configuration."
+                    fi
+                    ;;
+                *"Red Hat"*|*"CentOS"*|*"Fedora"*)
+                    echo "Checking firewall for Red Hat/CentOS/Fedora..."
+                    if command -v firewall-cmd &> /dev/null; then
+                        echo "Configuring firewalld..."
+                        sudo firewall-cmd --permanent --add-port=${port}/tcp
+                        sudo firewall-cmd --reload
+                    else
+                        echo "firewalld not found. Skipping firewall configuration."
+                    fi
+                    ;;
+                *)
+                    echo "Checking firewall for unknown Linux distribution..."
+                    if command -v firewall-cmd &> /dev/null; then
+                        echo "Configuring firewalld..."
+                        sudo firewall-cmd --permanent --add-port=${port}/tcp
+                        sudo firewall-cmd --reload
+                    elif command -v ufw &> /dev/null; then
+                        echo "Configuring UFW..."
+                        sudo ufw allow ${port}/tcp
+                        sudo ufw reload
+                    elif command -v iptables &> /dev/null; then
+                        echo "Configuring iptables..."
+                        sudo iptables -A INPUT -p tcp --dport ${port} -j ACCEPT
+                        if command -v iptables-save &> /dev/null; then
+                            sudo iptables-save | sudo tee /etc/iptables.rules
+                        else
+                            echo "Warning: iptables-save not found. Firewall rules may not persist after reboot."
+                        fi
+                    else
+                        echo "No supported firewall detected. Skipping firewall configuration."
+                    fi
+                    ;;
+            esac
+            ;;
+        Darwin*)
+            echo "Checking macOS firewall..."
+            if command -v /usr/libexec/ApplicationFirewall/socketfilterfw &> /dev/null; then
+                echo "Configuring macOS firewall..."
+                sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $(which python3)
+                sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $(which python3)
+            else
+                echo "macOS firewall configuration utility not found. Skipping firewall configuration."
+            fi
+            ;;
+        MINGW*|CYGWIN*|MSYS*)
+            echo "Checking Windows Firewall..."
+            if powershell -Command "Get-Command New-NetFirewallRule -ErrorAction SilentlyContinue" &> /dev/null; then
+                echo "Configuring Windows Firewall..."
+                powershell -Command "New-NetFirewallRule -DisplayName 'Allow Port ${port}' -Direction Inbound -LocalPort ${port} -Protocol TCP -Action Allow"
+            else
+                echo "Windows Firewall configuration utility not found. Skipping firewall configuration."
+            fi
+            ;;
+        *)
+            echo "Unsupported operating system. Skipping firewall configuration."
+            ;;
+    esac
+
+    echo "Firewall configuration process completed. Please ensure port ${port} is open if it wasn't configured automatically."
 }
 
 # Updated Function to import dashboard using Splunk CLI
