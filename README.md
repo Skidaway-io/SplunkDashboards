@@ -44,13 +44,15 @@ This project automates the installation of Splunk Enterprise, imports a custom d
    sudo ./splunk_tempo_install.sh
    ```
 
-7. Go to the dashboard at `your_ip:8000` and you should be prompted to login
+7. Go to the splunk at `your_ip:8000` and you should be prompted to login
    <img width="625" alt="Screenshot 2024-09-13 at 2 41 08 PM" src="https://github.com/user-attachments/assets/f389a9bb-40a4-4c78-85c8-548277d22c43">
    
    Use the credentials User:admin Passowrd:password
 
    Note: Change these defalts!!! Leaving these as is presents a HUGE security risk.
-   
+
+### Note: Sections 9-13 only needed if the dashboard did not load with the install script
+  
 9. From the home page click on `Search&Reporting` as shown in the screen shot below
 
    <img width="625" alt="Screenshot 2024-09-13 at 2 43 37 PM" src="https://github.com/user-attachments/assets/e4ca756f-eb50-46be-9f09-4d9dd7001f54">
