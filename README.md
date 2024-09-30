@@ -50,16 +50,24 @@ This project automates the installation of Splunk Enterprise, imports a custom d
    Use the credentials User:admin Passowrd:password
 
    Note: Change these defalts!!! Leaving these as is presents a HUGE security risk.
+   
+8. Next we need to load your data.  To do this take the .csv file you retreaved from the ouput of the Tempo SnowFlake app and download it to your local computer
 
-### Note: Sections 9-13 only needed if the dashboard did not load with the install script
-  
-9. From the home page click on `Search&Reporting` as shown in the screen shot below
+9. Once you have the file. Return to the Splunk tab in your browser and click settings
 
-   <img width="625" alt="Screenshot 2024-09-13 at 2 43 37 PM" src="https://github.com/user-attachments/assets/e4ca756f-eb50-46be-9f09-4d9dd7001f54">
+<img width="625" alt="Screenshot 2024-09-13 at 2 48 10 PM" src="https://github.com/user-attachments/assets/79aae761-d426-4958-943e-7ec6cc2dd2ce">
 
-10. Click Dashboards
+10. This will bring up a menu with a giant add data button click the button
 
-<img width="625" alt="Screenshot 2024-09-13 at 2 44 11 PM" src="https://github.com/user-attachments/assets/6e28ddf7-7c6c-41b8-a69d-aa178faee15a">
+<img width="625" alt="Screenshot 2024-09-13 at 2 48 43 PM" src="https://github.com/user-attachments/assets/7fe40f7d-06a1-4f9f-8986-b8723ffcd12e">
+
+11. Select upload and select the .csv file you downloaded from SnowFlake. Use all the default options when loading the CSV by clicking next till you arrive at the Done window.
+
+<img width="625" alt="Screenshot 2024-09-30 at 1 51 18 PM" src="https://github.com/user-attachments/assets/e255ddcb-8d4c-4256-8934-105f4ac79b39">
+
+18. Once the CSV has loaded Click the "Build Dashboards" button
+    
+    <img width="625" alt="Screenshot 2024-09-30 at 1 52 40 PM" src="https://github.com/user-attachments/assets/5a051b76-9a3a-4bad-ac98-7687f6daa766">
 
 11. Click create new dashboard
 
@@ -73,21 +81,19 @@ This project automates the installation of Splunk Enterprise, imports a custom d
 
 <img width="625" alt="Screenshot 2024-09-13 at 2 46 07 PM" src="https://github.com/user-attachments/assets/72186ecf-93d3-479b-91b8-45c76faa57c3">
    
-13. Copy the XML from the anomaly_hub.xml in this repo and paste it in the window. Then click save.
+13. Copy the XML from the anomaly_hub.xml in this repo and paste it in the window.
 
 <img width="625" alt="Screenshot 2024-09-13 at 2 47 36 PM" src="https://github.com/user-attachments/assets/d7a74dd5-4e6a-47f5-8b94-3797bde842dc">
-   
-14. Next we need to load your data.  To do this take the .csv file you retreaved from the ouput of the Tempo SnowFlake app and download it to your local computer
 
-15. Once you have the file. Return to the Splunk tab in your browser and click settings
+14. Find the line where the csv is loaded. It should look similar to the following
+                         `<query>source="2024-09-24 4_03pm.csv" host="Josiah" sourcetype="csv"
+| stats count as event_count</query>`
 
-<img width="625" alt="Screenshot 2024-09-13 at 2 48 10 PM" src="https://github.com/user-attachments/assets/79aae761-d426-4958-943e-7ec6cc2dd2ce">
+Relace the csv file name with your own 
 
-16. This will bring up a menu with a giant add data button click the button
-
-<img width="625" alt="Screenshot 2024-09-13 at 2 48 43 PM" src="https://github.com/user-attachments/assets/7fe40f7d-06a1-4f9f-8986-b8723ffcd12e">
-
-17. Select upload and select the .csv file you downloaded from SnowFlake. Use all the default options when loading the CSV.
+15. Click Save
+    
+    <img width="625" alt="Screenshot 2024-09-30 at 1 58 32 PM" src="https://github.com/user-attachments/assets/13f330b6-fa7c-49f3-a59c-41e099db6ca7">
 
 ## Important Notes
 
