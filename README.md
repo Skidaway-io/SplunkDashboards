@@ -87,7 +87,7 @@ This project automates the installation of Splunk Enterprise, imports a custom d
 
 <img width="625" alt="Screenshot 2024-09-13 at 2 48 43 PM" src="https://github.com/user-attachments/assets/7fe40f7d-06a1-4f9f-8986-b8723ffcd12e">
 
-17. Select upload and select the .csv file you downloaded from SnowFlake
+17. Select upload and select the .csv file you downloaded from SnowFlake. Use all the default options when loading the CSV.
 
 ## Important Notes
 
